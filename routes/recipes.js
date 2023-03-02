@@ -18,7 +18,7 @@ router.get('/:id', (req, res) => {
   }
   const selectedRecipe = recipes.filter(i=>{
     return i.id === Number(id)
-  });
+  })[0];
   if(selectedRecipe){
     const {timers}=selectedRecipe;
     const index = getIndex(timers,elapsedTime);

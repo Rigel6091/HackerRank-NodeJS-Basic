@@ -1,36 +1,38 @@
 var recipes = require('../recipes.json');
 var router = require('express').Router();
 
-function getIndex(timers, elapsedTime){
-  for(let i=0; i<timers.length; i++){
-    if(timers[i] >= elapsedTime){
-      return i;
+router.get('/step/:id', (req, res) => {
+  const { id } = req.params;
+
+  // find recipe step
+  const recipe = recipes[+id - 1];
+
+  if (!recipe) {
+    return res.status(400).send("NOT_FOUND");
+  }
+
+  let { elapsedTime = '' } = req.query;
+  if (!elapsedTime) {
+    elapsedTime = 0;
+  }
+  elapsedTime = +elapsedTime;
+
+  let stop = false;
+  const stepIndex = recipe.timers.reduce((prev, currentTime, index) => {
+    if (!stop) {
+      if (currentTime >= elapsedTime) {
+        stop = true;
+      }
+      return index;
     }
-  }
-}
 
-router.get('/:id', (req, res) => {
-  const id =req.parans.id;
-  const elapsedTime = req.query.elapsedTime || 0;
+    return prev;
+  }, 0);
 
-  if(isNaN(id)){
-    res.status(400).send('NOT_FOUND');
-  }
-  const selectedRecipe = recipes.filter(i=>{
-    return i.id === Number(id)
-  })[0];
-  if(selectedRecipe){
-    const {timers}=selectedRecipe;
-    const index = getIndex(timers,elapsedTime);
-    res.status(200).send({index});
-    
-  }
-  else{
-    res.status(404).send('NOT_FOUND');
-  }
-
-
-})
+  res.json({
+    index: stepIndex
+  });
+});
 
 
 module.exports = router;
